@@ -340,44 +340,66 @@ void lcpMergeSort(std::vector<std::pair<std::string, int>>& arr, std::vector<std
     }
 }
 
+int getCharIndex(char c) {
+    if (c >= 'A' && c <= 'Z') {
+		return c - 'A';
+	}
+    if (c >= 'a' && c <= 'z') {
+		return 26 + (c - 'a');
+	}
+    if (c >= '0' && c <= '9') {
+		return 52 + (c - '0');
+	}
+
+	std::string special = "!@#%:;^&*()-.";
+
+    for (size_t i = 0; i < special.length(); i++) {
+        if (c == special[i]) {
+			return 62 + static_cast<int>(i);
+		}
+    }
+    return 0;
+}
+
+
 void msdRadixSort(std::vector<std::string>& arr, int pos, int alphabetSize, bool switchToQuick) {
-    if (arr.size() <= 1) {
-        return;
-    }
+	if (arr.size() <= 1) {
+		return;
+	}
 
-    if (switchToQuick && static_cast<int>(arr.size()) < alphabetSize) {
-        stringQuickSort(arr, 0, static_cast<int>(arr.size()) - 1, pos);
-        return;
-    }
+	if (switchToQuick && static_cast<int>(arr.size()) < 74) {
+		stringQuickSort(arr, 0, static_cast<int>(arr.size()) - 1, pos);
+		return;
+	}
 
-    std::vector<int> count(alphabetSize + 1, 0);
+	std::vector<int> count(alphabetSize + 1, 0);
 
-    for (size_t i = 0; i < arr.size(); i++) {
-        int index = static_cast<size_t>(pos) < arr[i].length() ? static_cast<int>(arr[i][static_cast<size_t>(pos)]) % alphabetSize : 0;
-        count[static_cast<size_t>(index + 1)]++;
-    }
+	for (const std::string& s : arr) {
+		int index = static_cast<size_t>(pos) < s.length() ? getCharIndex(s[static_cast<size_t>(pos)]) : 0;
+		count[static_cast<size_t>(index + 1)]++;
+	}
 
-    for (int i = 1; i <= alphabetSize; i++) {
-        count[static_cast<size_t>(i)] += count[static_cast<size_t>(i - 1)];
-    }
+	for (int i = 1; i <= alphabetSize; i++) {
+		count[static_cast<size_t>(i)] += count[static_cast<size_t>(i - 1)];
+	}
 
-    std::vector<std::string> output(arr.size());
-    for (size_t i = 0; i < arr.size(); i++) {
-        int index = static_cast<size_t>(pos) < arr[i].length() ? static_cast<int>(arr[i][static_cast<size_t>(pos)]) % alphabetSize : 0;
-        output[static_cast<size_t>(count[static_cast<size_t>(index)]++)] = arr[i];
-    }
+	std::vector<std::string> output(arr.size());
+	for (const std::string& s : arr) {
+		int index = static_cast<size_t>(pos) < s.length() ? getCharIndex(s[static_cast<size_t>(pos)]) : 0;
+		output[static_cast<size_t>(count[static_cast<size_t>(index)]++)] = s;
+	}
 
-    arr = output;
+	arr = output;
 
-    int start = 0;
-    for (int i = 0; i <= alphabetSize; i++) {
-        if (count[static_cast<size_t>(i)] - start > 1) {
-            std::vector<std::string> sub(arr.begin() + start, arr.begin() + count[static_cast<size_t>(i)]);
-            msdRadixSort(sub, pos + 1, alphabetSize, switchToQuick);
-            std::copy(sub.begin(), sub.end(), arr.begin() + start);
-        }
-        start = count[static_cast<size_t>(i)];
-    }
+	int start = 0;
+	for (int i = 0; i <= alphabetSize; i++) {
+		if (count[static_cast<size_t>(i)] - start > 1) {
+			std::vector<std::string> sub(arr.begin() + start, arr.begin() + count[static_cast<size_t>(i)]);
+			msdRadixSort(sub, pos + 1, alphabetSize, switchToQuick);
+			std::copy(sub.begin(), sub.end(), arr.begin() + start);
+		}
+		start = count[static_cast<size_t>(i)];
+	}
 }
 
 int main() {
